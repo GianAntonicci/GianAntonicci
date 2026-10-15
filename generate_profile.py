@@ -2,11 +2,12 @@ import json
 import os
 import urllib.request
 from datetime import datetime, timezone
+from html import escape
 from pathlib import Path
 
 USER = "GianAntonicci"
 WIDTH = 62
-OUT = Path(__file__).resolve().parent.parent / "README.md"
+OUT = Path(__file__).resolve().parent / "README.md"
 
 
 def api(path, token):
@@ -52,7 +53,7 @@ def fetch_stats():
 
 def entry(key, value, width=WIDTH):
     dots = width - len(key) - len(value) - 5
-    return [(". ", "text"), (key + ":", "key"), (" " + "." * dots + " ", "dots"), (value, "value")]
+    return [(". ", "text"), (key + ":", "key"), (" " + "." * dots + " ", "text"), (value, "text")]
 
 
 def header(title, width=WIDTH):
@@ -82,11 +83,11 @@ def build(stats):
         blank,
         entry("Hobbies.Software", "Full Stack Web, IA"),
         entry("Hobbies.Hardware", "IoT, Arduino"),
-        entry("Hobbies.Creative", "Blender, Premiere, After Effects"),
+        entry("Hobbies.Creative", "Blender, Fusion 360, Lightburn"),
         blank,
         [("- ", "text")] + header("Contact", WIDTH - 2),
         entry("Email.Personal", "gianluca.antonicci@gmail.com"),
-        entry("LinkedIn", "gianluca-antonicci-b178a83b6"),
+        entry("LinkedIn", "gianluca-antonicci"),
         entry("GitHub", USER),
         blank,
         [("- ", "text")] + header("GitHub Stats", WIDTH - 2),
@@ -94,8 +95,12 @@ def build(stats):
         pair("Commits", stats["commits"], 34, "Followers", stats["followers"], 27),
     ]
 
-    rows = "\n".join("".join(text for text, _ in parts) for parts in lines)
-    return f"```\n{rows}\n```\n"
+    rows = "\n".join(
+        "".join(f"<b>{escape(text)}</b>" if kind == "key" else escape(text) for text, kind in parts)
+        for parts in lines
+    )
+    return f"<pre>\n{rows}\n</pre>\n"
+
 
 if __name__ == "__main__":
     OUT.write_text(build(fetch_stats()), encoding="utf-8")
